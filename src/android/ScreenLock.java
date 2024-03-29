@@ -6,6 +6,7 @@ import org.json.JSONException;
 import android.content.*;
 import android.provider.*;
 import android.app.*;
+import android.os.Build;
 
 public class ScreenLock extends CordovaPlugin {
 
@@ -17,11 +18,6 @@ public class ScreenLock extends CordovaPlugin {
         callbackContext.success(hasSecurity ? 1 : 0);
 
         return true;
-    }
-    
-    public static boolean doesDeviceHaveSecuritySetup(Context context)
-    {
-        return isPatternSet(context) || isPassOrPinSet(context);
     }
 
     private static boolean isPatternSet(Context context)
@@ -38,9 +34,18 @@ public class ScreenLock extends CordovaPlugin {
         }
     }
 
-    private static boolean isPassOrPinSet(Context context)
+    private static boolean doesDeviceHaveSecuritySetup(Context context)
     {
-        KeyguardManager keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE); //api 16+
-        return keyguardManager.isKeyguardSecure();
+        try {
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                KeyguardManager keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE); //api 16+
+                return keyguardManager.isKeyguardSecure();
+            }
+            else {
+                return isPatternSet(context);
+            }
+        } catch(Exception e) {
+            return false;
+        }
     }
 }
